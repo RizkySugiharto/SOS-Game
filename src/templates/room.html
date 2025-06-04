@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="room-section" data-game-url="{{ url_for('games.view_game', room_id=room_id) }}">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="game-card">
+                <div class="card-header text-center">
+                    <h2 class="h3 mb-2">
+                        <i class="fas fa-users me-2 text-primary"></i>
+                        Game Lobby
+                    </h2>
+                    <div class="room-code">
+                        <span class="badge bg-primary fs-6 px-3 py-2">
+                            <i class="fas fa-hashtag me-1"></i>
+                            Room: {{ room_id }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="players-section mb-4">
+                        <h4 class="h5 mb-3">
+                            <i class="fas fa-user-friends me-2"></i>
+                            Players
+                        </h4>
+                        <div class="players-list" id="players" data-host="{{ host }}"
+                            data-current-user="{{ session['username'] }}">
+                            <!-- Players will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="game-controls">
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <form action="{{ url_for('rooms.start_room', room_id=room_id) }}" method="post">
+                                    <input type="hidden" name="players" id="input-players">
+                                    <button class="btn btn-success btn-lg w-100">
+                                        <i class="fas fa-play me-2"></i>
+                                        Start Game
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-sm-6">
+                                <a href="{{ url_for('index') }}" class="btn btn-outline-danger btn-lg w-100">
+                                    <i class="fas fa-sign-out-alt me-2"></i>
+                                    Leave Room
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
+    integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
+    crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='js/room.js') }}"></script>
+{% endblock %}

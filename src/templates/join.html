@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="join-section">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="game-card">
+                <div class="card-header text-center">
+                    <h2 class="h3 mb-0">
+                        <i class="fas fa-door-open me-2 text-success"></i>
+                        Join Room
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form id="joinForm">
+                        <div class="mb-4">
+                            <label for="code" class="form-label fw-semibold">Room Code</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">
+                                    <i class="fas fa-hashtag"></i>
+                                </span>
+                                <input type="number" id="code" class="form-control" placeholder="Enter room code"
+                                    required>
+                            </div>
+                            <div class="form-text">Ask the host for the room code</div>
+                        </div>
+
+                        <div class="d-grid gap-3">
+                            <button type="submit" id="btn-join" class="btn btn-success btn-lg">
+                                <i class="fas fa-rocket me-2"></i>
+                                Join Game
+                            </button>
+                            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Back to Home
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/join.js') }}"></script>
+{% endblock %}

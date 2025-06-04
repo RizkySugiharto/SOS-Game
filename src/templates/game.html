@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="game-section" data-thank-you-url="{{ url_for('games.thank_you') }}">
+    <!-- Game Header -->
+    <div class="game-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <div class="current-player-card">
+                    <h5 class="mb-1">Current Player</h5>
+                    <span id="current-player" class="badge bg-primary fs-6 px-3 py-2">{{ current_player }}</span>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="char-selector">
+                    <label class="form-label fw-semibold">Choose Letter</label>
+                    <select id="selected-char" class="form-select form-select-lg">
+                        <option value="S" selected>S</option>
+                        <option value="O">O</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="room-info">
+                    <h6 class="mb-1">Room ID</h6>
+                    <span class="badge bg-secondary fs-6 px-3 py-2">{{ room_id }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Board -->
+    <div class="game-board-container">
+        <div class="game-board" id="game-board">
+            {% for i in range(15) %}
+            <div class="board-row">
+                {% for j in range(15) %}
+                {% set id = 15*i+j %}
+                <button id="btn-{{ id }}" onclick="btnPlayClicked(parseInt('{{ id }}'))"
+                    class="board-cell {% if states[id] == '1' %}cell-scored{% endif %}" data-cell="{{ id }}">
+                    {{ cells[id] }}
+                </button>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Game Info -->
+    <div class="game-info mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="players-scores">
+                    <h5 class="mb-3">
+                        <i class="fas fa-trophy me-2"></i>
+                        Scoreboard
+                    </h5>
+                    <div class="players-list" id="players" data-host="{{ host }}"
+                        data-current-user="{{ session['username'] }}">
+                        <!-- Players will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="game-status">
+                    <div class="surrender-info mb-3">
+                        <h6>Surrendered Players</h6>
+                        <span id="surrended" class="badge bg-warning text-dark">0 / {{ players|length }}</span>
+                    </div>
+                    <button id="btn-surrend" class="btn btn-outline-danger w-100">
+                        <i class="fas fa-flag me-2"></i>
+                        Surrender
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
+    integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
+    crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="hero-section text-center">
+    <div class="game-logo mb-4">
+        <h1 class="display-1 fw-bold text-gradient">SOS</h1>
+        <p class="lead text-muted">Challenge your friends in the classic SOS game!</p>
+    </div>
+
+    <div class="game-actions">
+        <div class="row justify-content-center g-4">
+            <div class="col-md-5">
+                <div class="action-card">
+                    <form action="{{ url_for('rooms.create_room') }}" method="post">
+                        <button class="btn btn-primary btn-lg w-100 action-btn">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Create Room
+                        </button>
+                    </form>
+                    <p class="text-muted mt-2 small">Start a new game and invite friends</p>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="action-card">
+                    <a href="{{ url_for('rooms.join_room') }}" class="btn btn-success btn-lg w-100 action-btn">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Join Room
+                    </a>
+                    <p class="text-muted mt-2 small">Enter a room code to join a game</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-info mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="info-card">
+                    <h3 class="h5 mb-3"><i class="fas fa-gamepad me-2"></i>How to Play</h3>
+                    <p class="text-muted">Create sequences of S-O-S on a 15x15 grid. The player with the most SOS
+                        sequences wins!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
