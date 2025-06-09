@@ -1,7 +1,10 @@
 from flask import session, current_app
-from flask_socketio import emit, join_room, leave_room
+from flask_socketio import emit, join_room, leave_room, disconnect
 from src.extensions import socketio
 import src.utils as utils
+from src.typings import SOSFlask
+
+current_app: SOSFlask
 
 @socketio.on('connect', namespace='/room')
 def room_connect():
@@ -10,15 +13,17 @@ def room_connect():
     
     room_id = session['room_id']
     username = session['username']
+    room = current_app.rooms.get(room_id, None)
     
-    if not current_app.rooms_players.get(room_id, False):
-        current_app.rooms_players[room_id] = []
-    current_app.rooms_players[room_id].append(username)
+    if room is None:
+        disconnect()
+        return
     
+    room.add_player(username)
     join_room(room=room_id)
     
     emit('user_init', {
-        'players': current_app.rooms_players[room_id],
+        'players': room.get_players(),
     })
     
     emit('user_join', {
@@ -29,10 +34,12 @@ def room_connect():
 def room_disconnect():
     room_id = session['room_id']
     username = session['username']
+    room = current_app.rooms.get(room_id, None)
     
-    if len(current_app.rooms_players.get(room_id, [])) > 0:
-        current_app.rooms_players[room_id].remove(username)
-        
+    if room is None:
+        return
+    
+    room.remove_player(username)
     leave_room(room=room_id)
         
     emit('user_leave', {

@@ -1,6 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, session, current_app
 from src.extensions import mysql
 import src.utils as utils
+from src.typings import SOSFlask
+from src.classes.game import Game
+
+current_app: SOSFlask
 
 bp = Blueprint('games', __name__)
 
@@ -25,9 +29,11 @@ def view_game(room_id):
     session['room_id'] = room_id
     
     scores = {}
+    players = []
     cursor.execute('SELECT username, score FROM scores WHERE room_id = %s', [room_id])
-    for username, score in cursor.fetchall():
-        scores[username] = score
+    for username_score, score in cursor.fetchall():
+        players.append(username_score)
+        scores[username_score] = score
     
     conn.close()
     
@@ -38,13 +44,23 @@ def view_game(room_id):
         flash(f"Error: Room with id {room_id} hasn't even started yet :/", category='danger')
         return redirect(url_for('join_room'))
     
+    game = current_app.games.get(room_id)
+    if game is None:
+        game = Game(
+            room_id=room_id,
+            host=host,
+            players=players,
+            scores=scores
+        )
+        current_app.games[room_id] = game
+    
     return render_template(
         'game.html',
         room_id=room_id,
         host=host,
         cells=cells,
         states=states,
-        current_player=current_app.rooms_crrnt_player[room_id],
+        current_player=game.get_current_player(),
     )
     
 @bp.get('/games/thank-you')

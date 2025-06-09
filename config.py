@@ -1,8 +1,0 @@
-MYSQL_DATABASE_HOST = 'bhqndniarxleaaz7nj9u-mysql.services.clever-cloud.com'
-MYSQL_DATABASE_USER = 'uoa81clxytap4f7v'
-MYSQL_DATABASE_PASSWORD = 'tQCjXKtzKTWCEHEad4qh'
-MYSQL_DATABASE_DB = 'bhqndniarxleaaz7nj9u'
-SECRET_KEY = 'secret1234'
-DEBUG_TB_ENABLED = False
-DEBUG_TB_INTERCEPT_REDIRECTS = False
-DEBUG_TB_PROFILER_ENABLED = True

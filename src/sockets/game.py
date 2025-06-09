@@ -1,7 +1,10 @@
 from flask import session, current_app
-from flask_socketio import emit, join_room, leave_room
+from flask_socketio import emit, join_room, leave_room, disconnect
 from src.extensions import socketio, mysql
 import src.utils as utils
+from src.typings import SOSFlask
+
+current_app: SOSFlask
 
 PATTERN = 'SOS'
 LIST_INDICES = (
@@ -16,29 +19,29 @@ def game_connect():
     
     room_id = session['room_id']
     username = session['username']
+    game = current_app.games.get(room_id, None)
     
-    if not current_app.rooms_players.get(room_id, False):
-        current_app.rooms_players[room_id] = []
-    current_app.rooms_players[room_id].append(username)
+    if game is None:
+        disconnect()
+        return
     
     conn = mysql.connect()
     cursor = conn.cursor()
     
     scores = {}
     cursor.execute('SELECT username, score FROM scores WHERE room_id = %s', [room_id])
-    for username, score in cursor.fetchall():
-        scores[username] = score
+    for username_score, score in cursor.fetchall():
+        scores[username_score] = score
         
     conn.close()
-    
-    if not current_app.rooms_surrenders.get(room_id, False):
-        current_app.rooms_surrenders[room_id] = set()
         
+    game.add_player(username)
     join_room(room=room_id)
     
     emit('user_init', {
-        'players': current_app.rooms_players[room_id],
-        'num_surrenders': len(current_app.rooms_surrenders[room_id]),
+        'current_player': game.get_current_player(),
+        'players': game.get_players(),
+        'num_surrenders': len(game.get_surrenders()),
         'scores': scores
     })
     
@@ -50,30 +53,33 @@ def game_connect():
 def game_disconnect():
     room_id = session['room_id']
     username = session['username']
+    game = current_app.games.get(room_id, None)
     
-    if len(current_app.rooms_players.get(room_id, [])) > 0:
-        crrnt_player_i = current_app.rooms_players[room_id].index(username)
-        current_app.rooms_crrnt_player[room_id] = current_app.rooms_players[room_id][(crrnt_player_i + 1) % len(current_app.rooms_players[room_id])]
-        current_app.rooms_players[room_id].remove(username)
-        
+    if game is None:
+        return
+    
+    game.remove_player(username)
     leave_room(room=room_id)
         
     emit('user_leave', {
         'username': username,
-        'current_player': current_app.rooms_crrnt_player[room_id] if current_app.rooms_crrnt_player.get(room_id, False) else '',
+        'current_player': game.get_current_player(),
     }, to=room_id, include_self=False)
     
 @socketio.on('play', namespace='/game')
 def game_play(json: dict[str, object]):
-    if session['username'] != current_app.rooms_crrnt_player[session['room_id']]:
+    room_id = session.get('room_id', 0)
+    game = current_app.games.get(room_id)
+    
+    if game is None:
+        return
+    if session['username'] != game.get_current_player():
         return
     
-    crrnt_player_i = current_app.rooms_players[session['room_id']].index(session['username'])
-    current_app.rooms_crrnt_player[session['room_id']] = current_app.rooms_players[session['room_id']][(crrnt_player_i + 1) % len(current_app.rooms_players[session['room_id']])]
+    game.turn_current_player()
     
     char_index: int = json.get('char_index', ' ')
     char: str = json.get('char', ' ')
-    room_id = session.get('room_id', 0)
     
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -112,27 +118,26 @@ def game_play(json: dict[str, object]):
         'char': char,
         'changed_states': changed_states,
         'added_score': added_score,
-        'current_player': current_app.rooms_crrnt_player[session['room_id']],
+        'current_player': game.get_current_player(),
     }, to=room_id)
 
 @socketio.on('surrend', namespace='/game')
 def game_surrend():
     room_id = session['room_id']
     username = session['username']
+    game = current_app.games.get(room_id)
     
-    if not current_app.rooms_surrenders.get(room_id, False):
-        current_app.rooms_surrenders[room_id] = set()
+    if game is None:
+        return
+    
+    game.add_surrender(username)
+    
+    emit('user_surrend', {
+        'current': len(game.get_surrenders()),
+        'max': game.get_max_surrenders()
+    }, broadcast=True)
         
-    if username in current_app.rooms_surrenders[room_id]:
-        current_app.rooms_surrenders[room_id].remove(username)
-    else:
-        current_app.rooms_surrenders[room_id].add(username)
-        
-    if len(current_app.rooms_surrenders[room_id]) < len(current_app.rooms_players[room_id]):
-        emit('user_surrend', {
-            'current': len(current_app.rooms_surrenders[room_id]),
-            'max': len(current_app.rooms_players[room_id])
-        }, broadcast=True)
+    if len(game.get_surrenders()) < game.get_max_surrenders():
         return
     
     conn = mysql.connect()

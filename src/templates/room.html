@@ -34,7 +34,7 @@
                             <div class="col-sm-6">
                                 <form action="{{ url_for('rooms.start_room', room_id=room_id) }}" method="post">
                                     <input type="hidden" name="players" id="input-players">
-                                    <button class="btn btn-success btn-lg w-100">
+                                    <button class="btn btn-success btn-lg w-100" {{ 'disabled' if session['username'] != host else '' }}>
                                         <i class="fas fa-play me-2"></i>
                                         Start Game
                                     </button>

@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 
     socket.on("user_init", (data) => {
+        currentPlayerElement.innerText = data.current_player
+        
         // Initialize players list if data contains players and scores
         if (data.players && data.scores) {
             const playersContainer = document.getElementById("players")

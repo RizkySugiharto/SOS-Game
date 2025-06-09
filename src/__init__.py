@@ -1,25 +1,23 @@
 from flask import Flask, render_template
+from src.typings import SOSFlask
 from src.extensions import mysql, toolbar, socketio
 from src.routes import rooms, games
+from dotenv import load_dotenv
+import os
+import json
+
+# Load .env file
+load_dotenv(dotenv_path='../.env')
 
 # Intialize Flask App
-app = Flask(__name__)
-app.config.from_pyfile('../config.py')
-app.secret_key = '3344afd55440df9db59c3156694e8a30faf4e6a74d7c4c63e66f144dfebe1c7d'
+app = SOSFlask(__name__)
+app.config.from_pyfile('./config.py')
+app.secret_key = os.getenv('SECRET_KEY')
 
 # Initialize Extensions
 mysql.init_app(app)
 toolbar.init_app(app)
 socketio.init_app(app)
-
-# Initialize Globals Data
-rooms_surrenders: dict[int, set[str]] = {}
-rooms_players: dict[int, list[str]] = {}
-rooms_crrnt_player: dict[int, str] = {}
-
-app.rooms_surrenders = rooms_surrenders
-app.rooms_players = rooms_players
-app.rooms_crrnt_player = rooms_crrnt_player
 
 # Register Blueprints
 app.register_blueprint(rooms.bp)
