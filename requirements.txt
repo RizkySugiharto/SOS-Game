@@ -4,6 +4,7 @@ cffi==1.17.1
 click==8.2.0
 colorama==0.4.6
 cryptography==44.0.3
+dotenv==0.9.9
 Flask==3.1.1
 Flask-DebugToolbar==0.16.0
 Flask-MySQL==1.6.0
@@ -14,6 +15,7 @@ Jinja2==3.1.6
 MarkupSafe==3.0.2
 pycparser==2.22
 PyMySQL==1.1.1
+python-dotenv==1.1.0
 python-engineio==4.12.1
 python-socketio==5.13.0
 simple-websocket==1.1.0
