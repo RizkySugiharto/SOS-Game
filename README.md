@@ -20,7 +20,7 @@ First, clone the repository to your local machine:
 
 ```bash
 git clone https://github.com/your-username/SOS-Game.git
-cd SOS-Game-master
+cd SOS-Game
 ```
 
 ### 2. Set up the Virtual Environment
@@ -78,7 +78,7 @@ Visit `http://127.0.0.1:5000` in your browser to play the game.
 Here's an overview of the project structure:
 
 ```bash
-SOS-Game-master/
+SOS-Game/
 ├── .env.template         # Template for environment variables
 ├── .gitignore            # Git ignore file
 ├── Scripts/              # Contains game-related scripts
