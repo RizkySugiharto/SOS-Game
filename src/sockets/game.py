@@ -149,14 +149,15 @@ def game_play(json: dict[str, object]):
 
     conn = mysql.get_db()
     cursor: Cursor = conn.cursor()
+    is_valid_index = lambda i: i >= 0 and i < len(cells)
 
     cells[char_index] = char
     for indices in LIST_INDICES:
         indices = list(map(lambda i: char_index + i, indices))
         selected_pattern = "".join(
-            [cells[i] if i >= 0 and i < len(cells) else " " for i in indices]
+            [cells[i] if is_valid_index(i) else " " for i in indices]
         )
-        is_all_chars_active = all([states[i] == "1" for i in indices])
+        is_all_chars_active = all([states[i] == "1" if is_valid_index(i) else False for i in indices])
 
         if selected_pattern != PATTERN or is_all_chars_active:
             continue
