@@ -1,7 +1,12 @@
+import { addNotification } from "./notification.js";
+
 // Room JavaScript
 document.addEventListener("DOMContentLoaded", () => {
     const inputPlayers = document.getElementById("input-players")
     const playersContainer = document.getElementById("players")
+    const buttonStart = document.getElementById("btn-start")
+    const currentUser = playersContainer.getAttribute('data-current-user')
+    const host = playersContainer.getAttribute('data-host')
     let basePlayers = []
 
     // Socket.IO connection
@@ -23,21 +28,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         data.players.forEach((username) => {
             addPlayerToList(username, {
-                isCurrentUser: username === playersContainer.getAttribute('data-current-user'),
-                isHost: username === playersContainer.getAttribute('data-host'),
+                isCurrentUser: username === currentUser,
+                isHost: username === host,
             })
         })
 
+        updateButtonStartStatus()
         updatePlayersInput()
     })
 
     socket.on("user_join", (data) => {
         addPlayerToList(data.username, {
+            isCurrentUser: data.username === playersContainer.getAttribute('data-current-user'),
             isHost: data.username === playersContainer.getAttribute('data-host'),
         })
+
         basePlayers.push(data.username)
+
+        updateButtonStartStatus()
         updatePlayersInput()
-        showNotification(`${data.username} joined the room`, "success")
+        addNotification(`${data.username} joined the room`, "success")
     })
 
     socket.on("user_leave", (data) => {
@@ -50,16 +60,39 @@ document.addEventListener("DOMContentLoaded", () => {
         if (index > -1) {
             basePlayers.splice(index, 1)
         }
+
+        updateButtonStartStatus()
         updatePlayersInput()
-        showNotification(`${data.username} left the room`, "warning")
+        addNotification(`${data.username} left the room`, "warning")
+    })
+
+    socket.on("room_not_found", (data) => {
+        addNotification("Room not found! Redirecting...", "danger")
+
+        setTimeout(() => {
+            const roomSection = document.getElementsByClassName('room-section')
+            if (roomSection.length < 1) return
+            window.location.href = roomSection[0].getAttribute('data-join-room-url')
+        }, 2000)
     })
 
     socket.on("game_start", (data) => {
-        showNotification('The game is starting....', "success")
 
-        const roomSection = document.getElementsByClassName('room-section');
-        if (roomSection.length < 1) return
-        window.location.href = roomSection[0].getAttribute('data-game-url')
+        const roomSection = document.getElementsByClassName('room-section')
+        const buttons = document.getElementsByClassName('btn')
+
+        if (data.started) {
+            if (roomSection.length < 1) return
+            window.location.href = roomSection[0].getAttribute('data-game-url')
+
+            return
+        } else {
+            addNotification('The game is starting....', "success")
+        }
+
+        for (const btn of buttons) {
+            btn.disabled = true
+        }
     })
 
     function addPlayerToList(username, options = {}) {
@@ -90,29 +123,12 @@ document.addEventListener("DOMContentLoaded", () => {
         inputPlayers.value = JSON.stringify(basePlayers)
     }
 
+    function updateButtonStartStatus() {
+        buttonStart.disabled = currentUser != host || basePlayers.length < 2
+    }
+
     function showConnectionStatus(message, type) {
         // You can implement a connection status indicator here
         console.log(`Connection status: ${message}`)
-    }
-
-    function showNotification(message, type) {
-        // Create a temporary notification
-        const notification = document.createElement("div")
-        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`
-        notification.style.cssText = "top: 20px; right: 20px; z-index: 1050; min-width: 300px;"
-        notification.innerHTML = `
-              <i class="fas fa-info-circle me-2"></i>
-              ${message}
-              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          `
-
-        document.body.appendChild(notification)
-
-        // Auto-remove after 3 seconds
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove()
-            }
-        }, 3000)
     }
 })

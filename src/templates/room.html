@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="room-section" data-game-url="{{ url_for('games.view_game', room_id=room_id) }}">
+<div class="room-section" data-game-url="{{ url_for('games.view_game', room_id=room_id) }}"
+    data-join-room-url="{{ url_for('rooms.join_room') }}">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="game-card">
@@ -34,19 +35,31 @@
                             <div class="col-sm-6">
                                 <form action="{{ url_for('rooms.start_room', room_id=room_id) }}" method="post">
                                     <input type="hidden" name="players" id="input-players">
-                                    <button class="btn btn-success btn-lg w-100" {{ 'disabled' if session['username'] != host else '' }}>
+                                    <button id="btn-start" class="btn btn-success btn-lg w-100" disabled>
                                         <i class="fas fa-play me-2"></i>
                                         Start Game
                                     </button>
                                 </form>
                             </div>
                             <div class="col-sm-6">
-                                <a href="{{ url_for('index') }}" class="btn btn-outline-danger btn-lg w-100">
+                                <button class="btn btn-outline-danger btn-lg w-100"
+                                    onclick="location.href = `{{ url_for('index') }}`">
                                     <i class="fas fa-sign-out-alt me-2"></i>
                                     Leave Room
-                                </a>
+                                </button>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="text-primary mt-5">
+                        <p><i class="fas fa-info-circle me-2"></i> To start the game, <b>there must be at least 2
+                                players or more</b>
+                            and that is very good. Additional
+                            information, the room that has been created has an <b>expiration time of 24 hours</b>. If
+                            when the
+                            "room cleaning" worker's time has started and he finds that this room (no matter whether the
+                            room has been started or not) <b>has no players connected in it at all, then he will delete
+                                this room permanently</b>. So, be careful when making a decision :)</p>
                     </div>
                 </div>
             </div>
@@ -59,5 +72,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
     integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
     crossorigin="anonymous"></script>
-<script src="{{ url_for('static', filename='js/room.js') }}"></script>
+<script src="{{ url_for('static', filename='js/room.js') }}" type="module"></script>
 {% endblock %}

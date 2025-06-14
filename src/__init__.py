@@ -1,13 +1,21 @@
-from flask import Flask, render_template
+# Patch sockets to make everything asynchronous
+from gevent import monkey
+monkey.patch_all()
+
+from flask import render_template
 from src.typings import SOSFlask
 from src.extensions import mysql, toolbar, socketio
 from src.routes import rooms, games
 from dotenv import load_dotenv
+from src.jobs import tl, register_jobs
 import os
-import json
 
 # Load .env file
-load_dotenv(dotenv_path='../.env')
+load_dotenv(
+    dotenv_path='../.env',
+    verbose=True,
+    override=True
+)
 
 # Intialize Flask App
 app = SOSFlask(__name__)
@@ -31,3 +39,7 @@ import src.sockets.game
 @app.get('/')
 def index():
     return render_template('index.html')
+
+# Start the cron jobs / time loop
+register_jobs(app=app)
+tl.start(block=False)

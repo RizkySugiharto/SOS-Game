@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="game-section" data-thank-you-url="{{ url_for('games.thank_you') }}">
+<div class="game-section" data-thank-you-url="{{ url_for('games.thank_you') }}" data-join-room-url="{{ url_for('rooms.join_room') }}">
     <!-- Game Header -->
     <div class="game-header mb-4">
         <div class="row align-items-center">
@@ -36,7 +36,9 @@
                 {% for j in range(15) %}
                 {% set id = 15*i+j %}
                 <button id="btn-{{ id }}" onclick="btnPlayClicked(parseInt('{{ id }}'))"
-                    class="board-cell {% if states[id] == '1' %}cell-scored{% endif %}" data-cell="{{ id }}">
+                    class="board-cell {% if states[id] == '1' %}cell-scored{% endif %} {% if states[id] == '0' and cells[id] != ' ' %}played{% endif %}" data-cell="{{ id }}"
+                    {% if states[id] == '1' or cells[id] != ' ' or is_visitor %}disabled{% endif %}
+                    >
                     {{ cells[id] }}
                 </button>
                 {% endfor %}
@@ -62,14 +64,20 @@
             </div>
             <div class="col-md-4">
                 <div class="game-status">
+                    <div class="visitors-info mb-3">
+                        <h6>Visitors</h6>
+                        <span id="visitors" class="badge bg-secondary text-white">0</span>
+                    </div>
                     <div class="surrender-info mb-3">
                         <h6>Surrendered Players</h6>
                         <span id="surrended" class="badge bg-warning text-dark">0 / {{ players|length }}</span>
                     </div>
+                    {% if not is_visitor %}
                     <button id="btn-surrend" class="btn btn-outline-danger w-100">
                         <i class="fas fa-flag me-2"></i>
                         Surrender
                     </button>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -81,5 +89,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
     integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
     crossorigin="anonymous"></script>
-<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+<script src="{{ url_for('static', filename='js/game.js') }}" type="module"></script>
 {% endblock %}

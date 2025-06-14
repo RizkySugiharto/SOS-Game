@@ -10,7 +10,7 @@
         <div class="row justify-content-center g-4">
             <div class="col-md-5">
                 <div class="action-card">
-                    <form action="{{ url_for('rooms.create_room') }}" method="post">
+                    <form action="{{ url_for('rooms.create_room') }}" method="post" id="form-create-room">
                         <button class="btn btn-primary btn-lg w-100 action-btn">
                             <i class="fas fa-plus-circle me-2"></i>
                             Create Room
@@ -21,10 +21,10 @@
             </div>
             <div class="col-md-5">
                 <div class="action-card">
-                    <a href="{{ url_for('rooms.join_room') }}" class="btn btn-success btn-lg w-100 action-btn">
+                    <button class="btn btn-success btn-lg w-100 action-btn"  onclick="location.href = `{{ url_for('rooms.join_room') }}`">
                         <i class="fas fa-sign-in-alt me-2"></i>
                         Join Room
-                    </a>
+                    </button>
                     <p class="text-muted mt-2 small">Enter a room code to join a game</p>
                 </div>
             </div>
@@ -43,4 +43,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/index.js') }}" type="module"></script>
 {% endblock %}

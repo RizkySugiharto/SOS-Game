@@ -1,82 +1,97 @@
+import { addNotification } from "./notification.js";
+
 // Game JavaScript
 document.addEventListener("DOMContentLoaded", () => {
     const socket = io("/game")
+    const visitorsElement = document.getElementById("visitors")
     const surrendedElement = document.getElementById("surrended")
     const currentPlayerElement = document.getElementById("current-player")
     const selectedCharElement = document.getElementById("selected-char")
     const surrenderBtn = document.getElementById("btn-surrend")
+    const playersContainer = document.getElementById("players")
 
     // Socket event handlers
     socket.on("connect", () => {
         console.log("Connected to game")
-        showNotification("Connected to game", "success")
+        addNotification("Connected to game", "success")
     })
 
     socket.on("disconnect", () => {
         console.log("Disconnected from game")
-        showNotification("Disconnected from game", "danger")
+        addNotification("Disconnected from game", "danger")
     })
 
-    socket.on("user_init", (data) => {
-        currentPlayerElement.innerText = data.current_player
-        
+    socket.on("user_init", (data) => {    
         // Initialize players list if data contains players and scores
         if (data.players && data.scores) {
-            const playersContainer = document.getElementById("players")
-            if (playersContainer) {
-                // Clear existing players
-                playersContainer.innerHTML = ""
+            // Clear existing players
+            playersContainer.innerHTML = ""
 
-                // Add each player to the list
-                data.players.forEach((username) => {
-                    const playerCard = document.createElement("div")
-                    playerCard.className = "player-score-card"
-                    playerCard.id = `item-${username}`
+            // Add each player to the list
+            data.players.forEach((username) => {
+                const playerCard = document.createElement("div")
+                playerCard.className = "player-score-card"
+                playerCard.id = `item-${username}`
 
-                    let badges = ""
-                    if (username === playersContainer.getAttribute('data-current-user')) {
-                        badges += ' <span class="badge bg-primary ms-2">You</span>'
-                    }
-                    if (username === playersContainer.getAttribute('data-host')) {
-                        badges += ' <span class="badge bg-success ms-2">Host</span>'
-                    }
+                let badges = ""
+                if (username === playersContainer.getAttribute('data-current-user')) {
+                    badges += ' <span class="badge bg-primary ms-2">You</span>'
+                }
+                if (username === playersContainer.getAttribute('data-host')) {
+                    badges += ' <span class="badge bg-success ms-2">Host</span>'
+                }
+                
+                if (!data.joined_players.includes(username)) {
+                    playerCard.classList.add("text-danger")
+                }
 
-                    playerCard.innerHTML = `
-              <div class="player-info">
-                <span class="player-name">${username}</span>
-                ${badges}
-              </div>
-              <div class="player-score">
-                <span id="${username}" class="score-number">${data.scores[username] || 0}</span>
-                <small class="text-muted">points</small>
-              </div>
-            `
+                playerCard.innerHTML = `
+                <div class="player-info">
+                    <span class="player-name">${username}</span>
+                    ${badges}
+                </div>
+                <div class="player-score">
+                    <span id="${username}" class="score-number">${data.scores[username] || 0}</span>
+                    <small class="text-muted">points</small>
+                </div>
+                `
 
-                    playersContainer.appendChild(playerCard)
-                })
-            }
+                playersContainer.appendChild(playerCard)
+            })
         }
 
-        if (data.players !== undefined && data.num_surrenders !== undefined) {
-            surrendedElement.innerText = `${data.num_surrenders} / ${data.players.length}`;
+        // Set surrenders's information
+        if (
+            data.players !== undefined &&
+            data.num_surrenders !== undefined
+        ) {
+            surrendedElement.innerText = `${data.num_surrenders} / ${data.players.length}`
         }
+
+        // Set current player
+        setCurrentPlayer(data.current_player)
 
         console.log("Game initialized with players:", data.players)
     })
 
     socket.on("user_join", (data) => {
+        // Update player's item
         const playerItem = document.getElementById(`item-${data.username}`)
         if (playerItem) {
             playerItem.classList.remove("text-danger")
-            showNotification(`${data.username} rejoined the game`, "success")
+            addNotification(`${data.username} rejoined the game`, "success")
         }
     })
 
     socket.on("user_leave", (data) => {
+        // Update current player
+        setCurrentPlayer(data.current_player)
+
+        // Update player's item
         const playerItem = document.getElementById(`item-${data.username}`)
         if (playerItem) {
             playerItem.classList.add("text-danger")
-            showNotification(`${data.username} left the game`, "warning")
+            addNotification(`${data.username} left the game`, "warning")
         }
     })
 
@@ -101,6 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 setTimeout(() => {
                     const cell = document.getElementById(`btn-${index}`)
                     if (cell) {
+                        cell.classList.remove("played")
                         cell.classList.add("cell-scored")
                         cell.style.animation = "scoreAnimation 0.5s ease"
                         setTimeout(() => {
@@ -122,27 +138,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Show points notification if points were scored
             if (data.added_score && data.added_score > 0) {
-                showNotification(`${data.username} scored ${data.added_score} points!`, "success")
+                addNotification(`${data.username} scored ${data.added_score} points!`, "success")
                 createFloatingPoints(scoreElement, data.added_score)
             }
         }
 
         // Update current player
         if (data.current_player) {
-            currentPlayerElement.innerText = data.current_player
-            updateCurrentPlayerHighlight(data.current_player)
+            setCurrentPlayer(data.current_player)
         }
     })
 
     socket.on("user_surrend", (data) => {
         if (surrendedElement && data.current !== undefined && data.max !== undefined) {
             surrendedElement.innerText = `${data.current} / ${data.max}`
-            showNotification("A player has surrendered", "warning")
+            addNotification("A player has surrendered", "warning")
         }
     })
 
+    socket.on("visitor_join", (data) => {
+        // Update visitor's counter
+        if (data.visitors == undefined) return
+        visitorsElement.innerText = data.visitors
+    })
+
+    socket.on("visitor_leave", (data) => {
+        // Update visitor's counter
+        if (data.visitors == undefined) return
+        visitorsElement.innerText = data.visitors
+    })
+
+    socket.on("game_not_found", (data) => {
+        addNotification("Game not found! Redirecting...", "danger")
+    
+        setTimeout(() => {
+            const gameSection = document.getElementsByClassName('game-section');
+            if (gameSection.length < 1) return
+            window.location.href = gameSection[0].getAttribute('data-join-room-url')
+        }, 2000)
+    })
+
     socket.on("game_end", (data) => {
-        showNotification("Game ended! Redirecting...", "info")
+        addNotification("Game ended! Redirecting...", "info")
 
         // Add celebration effect
         createCelebrationEffect()
@@ -158,9 +195,15 @@ document.addEventListener("DOMContentLoaded", () => {
     window.btnPlayClicked = (cellId) => {
         const cellButton = document.getElementById(`btn-${cellId}`)
 
+        // Check if the current user is the current player
+        if (playersContainer.getAttribute('data-current-user') != currentPlayerElement.textContent) {
+            addNotification("You aren't the current player", "danger")
+            return
+        }
+
         // Check if cell is already played
         if (!cellButton || cellButton.innerText.trim() !== "" || cellButton.disabled) {
-            showNotification("This cell is already taken!", "warning")
+            addNotification("This cell is already taken!", "warning")
             return
         }
 
@@ -169,6 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Add visual feedback
         cellButton.classList.add("playing")
         cellButton.style.transform = "scale(0.95)"
+        addNotification("Please wait....", "primary")
 
         // Emit play event
         socket.emit("play", {
@@ -184,18 +228,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Surrender functionality
-    surrenderBtn.addEventListener("click", function () {
-        if (confirm("Are you sure you want to surrender? This action cannot be undone.")) {
-            socket.emit("surrend")
-            this.disabled = true
-            this.innerHTML = '<i class="fas fa-flag me-2"></i>Surrendered'
-            this.classList.remove("btn-outline-danger")
-            this.classList.add("btn-danger")
-            showNotification("You have surrendered", "info")
-        }
-    })
+    if (surrenderBtn) {
+        surrenderBtn.addEventListener("click", function () {
+            if (confirm("Are you sure you want to surrender? This action cannot be undone.")) {
+                socket.emit("surrend")
+                this.disabled = true
+                this.innerHTML = '<i class="fas fa-flag me-2"></i>Surrendered'
+                this.classList.remove("btn-outline-danger")
+                this.classList.add("btn-danger")
+                addNotification("You have surrendered", "info")
+            }
+        })
+    }
 
     // Helper functions
+    function setCurrentPlayer(currentPlayer) {
+        const currentUser = playersContainer.getAttribute('data-current-user')
+        currentPlayerElement.innerText = currentPlayer
+
+        if (currentPlayer == currentUser) {
+            currentPlayerElement.classList.add('bg-success')
+        } else {
+            currentPlayerElement.classList.remove('bg-success')
+        }
+
+        updateCurrentPlayerHighlight(currentPlayer)
+    }
+
     function updateCurrentPlayerHighlight(currentPlayer) {
         // Remove previous highlights
         document.querySelectorAll(".player-score-card").forEach((card) => {
@@ -295,26 +354,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return colors[Math.floor(Math.random() * colors.length)]
     }
 
-    function showNotification(message, type) {
-        const notification = document.createElement("div")
-        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`
-        notification.style.cssText = "top: 20px; right: 20px; z-index: 1050; min-width: 300px; max-width: 400px;"
-        notification.innerHTML = `
-        <i class="fas fa-info-circle me-2"></i>
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      `
-
-        document.body.appendChild(notification)
-
-        // Auto-remove after 4 seconds
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove()
-            }
-        }, 4000)
-    }
-
     // Add CSS animations
     const style = document.createElement("style")
     style.textContent = `
@@ -367,6 +406,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .board-cell.played {
         cursor: not-allowed;
         opacity: 0.9;
+        color: darkslategrey;
       }
       
       .board-cell:disabled {
