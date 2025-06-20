@@ -29,7 +29,7 @@ def register_jobs(app: SOSFlask):
                     is_unused = True
                     current_app.rooms.pop(room_id)
                 
-                if game is not None and len(game.get_players()) < 1:
+                if game is not None and game.get_number_of_players() < 1:
                     is_unused = True
                     current_app.games.pop(room_id)
                     

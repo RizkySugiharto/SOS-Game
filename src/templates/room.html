@@ -2,66 +2,258 @@
 {% block content %}
 <div class="room-section" data-game-url="{{ url_for('games.view_game', room_id=room_id) }}"
     data-join-room-url="{{ url_for('rooms.join_room') }}">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="game-card">
-                <div class="card-header text-center">
-                    <h2 class="h3 mb-2">
-                        <i class="fas fa-users me-2 text-primary"></i>
-                        Game Lobby
-                    </h2>
-                    <div class="room-code">
-                        <span class="badge bg-primary fs-6 px-3 py-2">
-                            <i class="fas fa-hashtag me-1"></i>
-                            Room: {{ room_id }}
-                        </span>
+    {% set is_host = session['username'] == host %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-xl-10">
+                <!-- Room Header -->
+                <div class="room-header mb-4">
+                    <div class="text-center">
+                        <h1 class="display-6 mb-3">
+                            <i class="fas fa-users me-3 text-primary"></i>
+                            Game Lobby
+                        </h1>
+                        <div class="room-code-display">
+                            <span class="badge bg-primary fs-4 px-4 py-3 rounded-pill">
+                                <i class="fas fa-hashtag me-2"></i>
+                                Room: {{ room_id }}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="card-body">
-                    <div class="players-section mb-4">
-                        <h4 class="h5 mb-3">
-                            <i class="fas fa-user-friends me-2"></i>
-                            Players
-                        </h4>
-                        <div class="players-list" id="players" data-host="{{ host }}"
-                            data-current-user="{{ session['username'] }}">
-                            <!-- Players will be populated by JavaScript -->
+                <div class="row g-4">
+                    <!-- Left Column: Players & Game Info -->
+                    <div class="{% if is_host %}col-lg-6{% else %}col-12 d-flex gap-4{% endif %}">
+                        <!-- Players Section -->
+                        <div class="info-card players-card" {% if not is_host %}style="flex-grow: 0.5;" {% endif %}>
+                            <div class="card-header">
+                                <h4 class="card-title mb-0">
+                                    <i class="fas fa-user-friends me-2 text-success"></i>
+                                    Players
+                                    <span class="badge bg-success ms-2" id="player-count">0</span>
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="players-list" id="players" data-host="{{ host }}"
+                                    data-current-user="{{ session['username'] }}">
+                                    <!-- Players will be populated by JavaScript -->
+                                </div>
+                                <div class="players-info mt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Minimum 2 players required to start
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Room Information -->
+                        <div class="info-card room-info-card {% if is_host %}mt-4{% endif %}" {% if not is_host
+                            %}style="flex-grow: 0.5;" {% endif %}>
+                            <div class="card-header">
+                                <h4 class="card-title mb-0">
+                                    <i class="fas fa-info-circle me-2 text-info"></i>
+                                    Room Information
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="info-items">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-clock text-warning"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <h6 class="mb-1">Room Expiration</h6>
+                                            <p class="mb-0 text-muted">24 hours from creation</p>
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-trash-alt text-danger"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <h6 class="mb-1">Auto-Cleanup</h6>
+                                            <p class="mb-0 text-muted">Room deleted if empty during cleanup</p>
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="fas fa-gamepad text-primary"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <h6 class="mb-1">Game Type</h6>
+                                            <p class="mb-0 text-muted">SOS - Strategic Grid Game</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="game-controls">
-                        <div class="row g-3">
-                            <div class="col-sm-6">
-                                <form action="{{ url_for('rooms.start_room', room_id=room_id) }}" method="post">
+                    <!-- Right Column: Game Settings & Controls -->
+                    <div class="{% if is_host %}col-lg-6{% else %}col-12{% endif %}">
+                        {% if is_host %}
+                        <!-- Timer Settings -->
+                        <div class="info-card timer-settings-card">
+                            <div class="card-header">
+                                <h4 class="card-title mb-0">
+                                    <i class="fas fa-stopwatch me-2 text-warning"></i>
+                                    Timer Settings
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <!-- Enable Timer Toggle -->
+                                <div class="setting-group mb-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="setting-info">
+                                            <h6 class="mb-1">Enable Turn Timer</h6>
+                                            <small class="text-muted">Limit time per player turn</small>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="enableTimer">
+                                            <label class="form-check-label" for="enableTimer"></label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Timer Duration -->
+                                <div class="setting-group mb-4" id="timerDurationGroup" style="display: none;">
+                                    <label for="timerDuration" class="form-label fw-semibold">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Turn Duration
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="range" class="w-100" id="timerDuration" min="10" max="300"
+                                            value="60" step="10">
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <small class="text-muted">10s</small>
+                                        <div class="timer-display">
+                                            <span class="badge bg-warning text-dark fs-6" id="timerValue">60
+                                                seconds</span>
+                                        </div>
+                                        <small class="text-muted">5min</small>
+                                    </div>
+                                </div>
+
+                                <!-- Reset Timer on Score Toggle -->
+                                <div class="setting-group mb-3" id="resetTimerGroup" style="display: none;">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="setting-info">
+                                            <h6 class="mb-1">
+                                                <i class="fas fa-redo me-1 text-success"></i>
+                                                Reset Timer on Score
+                                            </h6>
+                                            <small class="text-muted">Reset timer when player scores points</small>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="resetTimerOnScore"
+                                                checked>
+                                            <label class="form-check-label" for="resetTimerOnScore"></label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Timer Preview -->
+                                <div class="timer-preview mt-3" id="timerPreview" style="display: none;">
+                                    <div class="alert alert-info d-flex align-items-start">
+                                        <i class="fas fa-info-circle me-3 mt-1"></i>
+                                        <div>
+                                            <strong>Timer Active:</strong> Each player has <span
+                                                id="previewTime">60</span> seconds per turn.
+                                            <br>
+                                            <span id="resetInfo">Timer resets to full duration when player
+                                                scores.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Game Controls -->
+                        <div class="info-card game-controls-card mt-4">
+                            <div class="card-header">
+                                <h4 class="card-title mb-0">
+                                    <i class="fas fa-play-circle me-2 text-success"></i>
+                                    Game Controls
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                {% if is_host %}
+                                <form action="{{ url_for('rooms.start_room', room_id=room_id) }}" method="post"
+                                    id="startGameForm" class="mb-3">
                                     <input type="hidden" name="players" id="input-players">
-                                    <button id="btn-start" class="btn btn-success btn-lg w-100" disabled>
-                                        <i class="fas fa-play me-2"></i>
-                                        Start Game
-                                    </button>
+                                    <input type="hidden" name="timer_enabled" id="input-timer-enabled">
+                                    <input type="hidden" name="timer_duration" id="input-timer-duration">
+                                    <input type="hidden" name="reset_timer_on_score" id="input-reset-timer-on-score">
+
+                                    <div class="d-grid">
+                                        <button id="btn-start" class="btn btn-success btn-lg" disabled>
+                                            <i class="fas fa-rocket me-2"></i>
+                                            Start Game
+                                        </button>
+                                    </div>
                                 </form>
-                            </div>
-                            <div class="col-sm-6">
-                                <button class="btn btn-outline-danger btn-lg w-100"
-                                    onclick="location.href = `{{ url_for('index') }}`">
-                                    <i class="fas fa-sign-out-alt me-2"></i>
-                                    Leave Room
-                                </button>
+                                {% endif %}
+
+                                <div class="game-status" id="gameStatus">
+                                    <div class="alert alert-warning d-flex align-items-center">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <span>Waiting for more players...</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <button class="btn btn-outline-danger btn-lg w-100"
+                                        onclick="location.href = `{{ url_for('index') }}`">
+                                        <i class="fas fa-sign-out-alt me-2"></i>
+                                        Leave Room
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="text-primary mt-5">
-                        <p><i class="fas fa-info-circle me-2"></i> To start the game, <b>there must be at least 2
-                                players or more</b>
-                            and that is very good. Additional
-                            information, the room that has been created has an <b>expiration time of 24 hours</b>. If
-                            when the
-                            "room cleaning" worker's time has started and he finds that this room (no matter whether the
-                            room has been started or not) <b>has no players connected in it at all, then he will delete
-                                this room permanently</b>. So, be careful when making a decision :)</p>
+                <!-- Host Controls (Only visible to host) -->
+                {% if is_host %}
+                <div class="row mt-4" id="hostControls" style="display: none;">
+                    <div class="col-12">
+                        <div class="info-card host-controls-card">
+                            <div class="card-header">
+                                <h4 class="card-title mb-0">
+                                    <i class="fas fa-crown me-2 text-warning"></i>
+                                    Host Controls
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <button class="btn btn-outline-danger w-100" id="disbandBtn">
+                                            <i class="fas fa-trash me-2"></i>
+                                            Disband This Room
+                                        </button>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button class="btn btn-outline-info w-100" id="roomSettingsBtn">
+                                            <i class="fas fa-cog me-2"></i>
+                                            Room Settings
+                                        </button>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button class="btn btn-outline-secondary w-100" id="copyRoomCodeBtn">
+                                            <i class="fas fa-copy me-2"></i>
+                                            Copy Room Code
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>

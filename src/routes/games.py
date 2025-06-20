@@ -24,13 +24,14 @@ def view_game(room_id):
     if not session.get("username", False):
         session["username"] = utils.generate_username()
 
+    username = session["username"]
     conn = mysql.get_db()
     cursor: Cursor = conn.cursor()
     game = current_app.games.get(room_id)
 
     if game is None:
         cursor.execute(
-            "SELECT winner, host, started, cells, states FROM rooms WHERE id = %s",
+            "SELECT winner, host, started, cells, states, timer_interval, reset_timer_on_score FROM rooms WHERE id = %s",
             [room_id],
         )
         if cursor.rowcount < 1:
@@ -38,7 +39,7 @@ def view_game(room_id):
             flash(f"Error: Room with id {room_id} isn't exists :(", category="danger")
             return redirect(url_for("join_room"))
 
-        winner, host, started, cells, states = cursor.fetchone()
+        winner, host, started, cells, states, timer_interval, reset_timer_on_score = cursor.fetchone()
 
         if not started:
             cursor.close()
@@ -69,6 +70,9 @@ def view_game(room_id):
             winner=winner,
             cells=list(cells),
             states=list(states),
+            timer_enabled=(timer_interval is not None),
+            timer_seconds=timer_interval,
+            reset_timer_on_score=reset_timer_on_score
         )
         current_app.games[room_id] = game
 
@@ -78,10 +82,9 @@ def view_game(room_id):
         "game.html",
         room_id=room_id,
         host=game.get_host(),
-        cells=game.get_cells(),
-        states=game.get_states(),
         current_player=game.get_current_player(),
-        is_visitor=(session["username"] not in game.get_allowed_players()),
+        is_visitor=(username not in game.get_allowed_players()),
+        is_timer_enabled=game.is_timer_enabled(),
     )
 
 
