@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnStart = document.getElementById("btn-start")
     const gameStatus = document.getElementById("gameStatus")
     const hostControls = document.getElementById("hostControls")
+    const roomCodeElement = document.querySelector(".room-code-display>.badge")
 
     // Timer controls
     const enableTimerSwitch = document.getElementById("enableTimer")
@@ -158,6 +159,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     })
 
+    if (roomCodeElement) {
+        roomCodeElement.addEventListener("click", copyRoomCode)
+    }
+
     // Timer controls event handlers
     if (document.getElementsByClassName('timer-settings-card').length > 0) {
         enableTimerSwitch.addEventListener("change", function () {
@@ -188,22 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (copyRoomCodeBtn) {
-        copyRoomCodeBtn.addEventListener("click", () => {
-            // Extract room ID from the page
-            const roomCodeElement = document.querySelector(".room-code-display .badge")
-            const roomCode = roomCodeElement ? roomCodeElement.textContent.replace("Room: ", "").trim() : ""
-
-            if (roomCode) {
-                navigator.clipboard
-                    .writeText(roomCode)
-                    .then(() => {
-                        addNotification("Room code copied to clipboard!", "success")
-                    })
-                    .catch(() => {
-                        addNotification("Failed to copy room code", "danger")
-                    })
-            }
-        })
+        copyRoomCodeBtn.addEventListener("click", copyRoomCode)
     }
 
     if (roomSettingsBtn) {
@@ -213,6 +203,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Helper functions
+    function copyRoomCode() {
+        // Extract room ID from the page
+        const roomCode = roomCodeElement ? roomCodeElement.textContent.replace("Room: ", "").trim() : ""
+
+        if (roomCode) {
+            navigator.clipboard
+                .writeText(roomCode)
+                .then(() => {
+                    addNotification("Room code copied to clipboard!", "success")
+                })
+                .catch(() => {
+                    addNotification("Failed to copy room code", "danger")
+                })
+        }
+    }
+
     function addPlayerToList(username, options = {}) {
         const playerDiv = document.createElement("div")
         playerDiv.className = "player-item"
@@ -386,6 +392,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         .room-code-display {
             margin-top: 1rem;
+        }
+
+        .room-code-display>.badge {
+            transition: opacity 0.3s cubic-bezier(0.46, 0.03, 0.52, 0.96), transform 0.1s ease-out;
+        }
+
+        .room-code-display>.badge:hover {
+            cursor: pointer;
+            opacity: 0.8;
+        }
+
+        .room-code-display>.badge:active {
+            opacity: 0.6;
+            transform: scale(0.95);
         }
 
         .info-card {

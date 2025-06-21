@@ -14,7 +14,7 @@
                             Game Lobby
                         </h1>
                         <div class="room-code-display">
-                            <span class="badge bg-primary fs-4 px-4 py-3 rounded-pill">
+                            <span class="badge bg-primary fs-4 px-4 py-3 rounded-pill" title="Click to Copy Room Code">
                                 <i class="fas fa-hashtag me-2"></i>
                                 Room: {{ room_id }}
                             </span>
@@ -24,9 +24,9 @@
 
                 <div class="row g-4">
                     <!-- Left Column: Players & Game Info -->
-                    <div class="{% if is_host %}col-lg-6{% else %}col-12 d-flex gap-4{% endif %}">
+                    <div class="{% if is_host %}col-lg-6{% else %}d-flex flex-column d-lg-grid gap-4{% endif %}" {% if not is_host %}style="grid-template-columns: 50% calc(50% - 1.5rem)"{% endif %}>
                         <!-- Players Section -->
-                        <div class="info-card players-card" {% if not is_host %}style="flex-grow: 0.5;" {% endif %}>
+                        <div class="info-card players-card {% if not is_host %}w-100{% endif %}">
                             <div class="card-header">
                                 <h4 class="card-title mb-0">
                                     <i class="fas fa-user-friends me-2 text-success"></i>
@@ -49,8 +49,7 @@
                         </div>
 
                         <!-- Room Information -->
-                        <div class="info-card room-info-card {% if is_host %}mt-4{% endif %}" {% if not is_host
-                            %}style="flex-grow: 0.5;" {% endif %}>
+                        <div class="info-card room-info-card {% if is_host %}mt-4{% else %}w-100{% endif %}">
                             <div class="card-header">
                                 <h4 class="card-title mb-0">
                                     <i class="fas fa-info-circle me-2 text-info"></i>
