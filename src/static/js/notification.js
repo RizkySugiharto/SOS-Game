@@ -7,7 +7,7 @@ export function addNotification(message, type) {
     notification.innerHTML = `
     <i class="fas fa-info-circle me-2"></i>
     ${message}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"> </button>
   `
 
     notificationsContainer.appendChild(notification)

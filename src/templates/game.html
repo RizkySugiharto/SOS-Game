@@ -1,4 +1,9 @@
 {% extends 'base.html' %}
+
+{% block styles %}
+<link href="{{ url_for('static', filename='css/game.min.css') }}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <div class="game-section" data-thank-you-url="{{ url_for('games.thank_you') }}"
     data-join-room-url="{{ url_for('rooms.join_room') }}">
@@ -19,7 +24,7 @@
 
             <div class="col-lg-2 col-md-6">
                 <div class="char-selector">
-                    <label class="form-label fw-semibold">Choose Letter</label>
+                    <label for="selected-char" class="form-label fw-semibold">Choose Letter</label>
                     <select id="selected-char" class="form-select form-select-lg" {{ cell_status }}>
                         <option value="S" selected>S</option>
                         <option value="O">O</option>
@@ -111,14 +116,14 @@
     <!-- Board Zoom Controls -->
     <div class="board-controls mb-3">
         <div class="zoom-controls">
-            <button id="zoom-out" class="btn btn-outline-secondary btn-sm">
+            <button id="zoom-out" class="btn btn-outline-secondary btn-sm" aria-label="zoom-out">
                 <i class="fas fa-search-minus"></i>
             </button>
             <div class="zoom-slider-container">
                 <input type="range" id="zoom-slider" class="zoom-slider" min="50" max="200" value="100" step="10">
-                <span id="zoom-percentage" class="zoom-percentage">100%</span>
+                <label for="zoom-slider" class="zoom-percentage">100%</label>
             </div>
-            <button id="zoom-in" class="btn btn-outline-secondary btn-sm">
+            <button id="zoom-in" class="btn btn-outline-secondary btn-sm" aria-label="zoom-in">
                 <i class="fas fa-search-plus"></i>
             </button>
             <button id="reset-zoom" class="btn btn-outline-primary btn-sm ms-2">
@@ -144,7 +149,7 @@
                         {% for j in range(15) %}
                         {% set id = 15*i+j %}
                         <button id="btn-{{ id }}" onclick="btnPlayClicked(parseInt('{{ id }}'))" class="board-cell"
-                            data-ready="0" data-cell="{{ id }}" data-row="{{ i }}" data-col="{{ j }}" {{ cell_status }}>
+                            data-ready="0" data-cell="{{ id }}" data-row="{{ i }}" data-col="{{ j }}" {{ cell_status }} aria-label="board-cell-button">
                         </button>
                         {% endfor %}
                     </div>
@@ -225,8 +230,8 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
     integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
     crossorigin="anonymous"></script>
-<script src="{{ url_for('static', filename='js/game.js') }}" type="module"></script>
+<script defer src="{{ url_for('static', filename='js/game.min.js') }}" type="module"></script>
 {% endblock %}

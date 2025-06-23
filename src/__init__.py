@@ -4,7 +4,7 @@ monkey.patch_all()
 
 from flask import render_template
 from src.typings import SOSFlask
-from src.extensions import mysql, toolbar, socketio
+from src.extensions import mysql, toolbar, socketio, minify, csrf, compress
 from src.routes import rooms, games
 from dotenv import load_dotenv
 from src.jobs import tl, register_jobs
@@ -26,6 +26,9 @@ app.secret_key = os.getenv('SECRET_KEY')
 mysql.init_app(app)
 toolbar.init_app(app)
 socketio.init_app(app)
+compress.init_app(app)
+# minify.init_app(app)
+csrf.init_app(app)
 
 # Register Blueprints
 app.register_blueprint(rooms.bp)

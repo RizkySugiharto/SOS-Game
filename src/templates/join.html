@@ -1,4 +1,9 @@
 {% extends 'base.html' %}
+
+{% block styles %}
+<link href="{{ url_for('static', filename='css/join.min.css') }}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <div class="join-section">
     <div class="row justify-content-center">
@@ -11,14 +16,16 @@
                     </h2>
                 </div>
                 <div class="card-body">
-                    <form id="joinForm">
+                    <form id="join-form" method="post">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        
                         <div class="mb-4">
                             <label for="code" class="form-label fw-semibold">Room Code</label>
                             <div class="input-group input-group-lg">
                                 <span class="input-group-text">
                                     <i class="fas fa-hashtag"></i>
                                 </span>
-                                <input type="number" id="code" class="form-control" placeholder="Enter room code"
+                                <input type="number" id="code" name="room_id" class="form-control" placeholder="Enter room code"
                                     required>
                             </div>
                             <div class="form-text">Ask the host for the room code</div>
@@ -43,5 +50,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/join.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/join.js') }}"></script>
 {% endblock %}

@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
+
+{% block styles %}
+<link href="{{ url_for('static', filename='css/room.min.css') }}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
-<div class="room-section" data-game-url="{{ url_for('games.view_game', room_id=room_id) }}"
+<div class="room-section" data-game-url="{{ url_for('games.view_game') }}"
     data-join-room-url="{{ url_for('rooms.join_room') }}">
     {% set is_host = session['username'] == host %}
     <div class="container-fluid">
@@ -28,11 +33,11 @@
                         <!-- Players Section -->
                         <div class="info-card players-card {% if not is_host %}w-100{% endif %}">
                             <div class="card-header">
-                                <h4 class="card-title mb-0">
+                                <h2 class="card-title mb-0 fs-4">
                                     <i class="fas fa-user-friends me-2 text-success"></i>
                                     Players
                                     <span class="badge bg-success ms-2" id="player-count">0</span>
-                                </h4>
+                                </h2>
                             </div>
                             <div class="card-body">
                                 <div class="players-list" id="players" data-host="{{ host }}"
@@ -51,10 +56,10 @@
                         <!-- Room Information -->
                         <div class="info-card room-info-card {% if is_host %}mt-4{% else %}w-100{% endif %}">
                             <div class="card-header">
-                                <h4 class="card-title mb-0">
+                                <h2 class="card-title mb-0 fs-4">
                                     <i class="fas fa-info-circle me-2 text-info"></i>
                                     Room Information
-                                </h4>
+                                </h2>
                             </div>
                             <div class="card-body">
                                 <div class="info-items">
@@ -63,7 +68,7 @@
                                             <i class="fas fa-clock text-warning"></i>
                                         </div>
                                         <div class="info-content">
-                                            <h6 class="mb-1">Room Expiration</h6>
+                                            <h3 class="mb-1 fs-6">Room Expiration</h3>
                                             <p class="mb-0 text-muted">24 hours from creation</p>
                                         </div>
                                     </div>
@@ -72,7 +77,7 @@
                                             <i class="fas fa-trash-alt text-danger"></i>
                                         </div>
                                         <div class="info-content">
-                                            <h6 class="mb-1">Auto-Cleanup</h6>
+                                            <h3 class="mb-1 fs-6">Auto-Cleanup</h3>
                                             <p class="mb-0 text-muted">Room deleted if empty during cleanup</p>
                                         </div>
                                     </div>
@@ -81,7 +86,7 @@
                                             <i class="fas fa-gamepad text-primary"></i>
                                         </div>
                                         <div class="info-content">
-                                            <h6 class="mb-1">Game Type</h6>
+                                            <h3 class="mb-1 fs-6">Game Type</h3>
                                             <p class="mb-0 text-muted">SOS - Strategic Grid Game</p>
                                         </div>
                                     </div>
@@ -96,22 +101,21 @@
                         <!-- Timer Settings -->
                         <div class="info-card timer-settings-card">
                             <div class="card-header">
-                                <h4 class="card-title mb-0">
+                                <h2 class="card-title mb-0 fs-4">
                                     <i class="fas fa-stopwatch me-2 text-warning"></i>
                                     Timer Settings
-                                </h4>
+                                </h2>
                             </div>
                             <div class="card-body">
                                 <!-- Enable Timer Toggle -->
                                 <div class="setting-group mb-4">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div class="setting-info">
-                                            <h6 class="mb-1">Enable Turn Timer</h6>
+                                            <label class="mb-1 fs-6 d-block" for="enableTimer">Enable Turn Timer</label>
                                             <small class="text-muted">Limit time per player turn</small>
                                         </div>
                                         <div class="form-check form-switch">
                                             <input class="form-check-input" type="checkbox" id="enableTimer">
-                                            <label class="form-check-label" for="enableTimer"></label>
                                         </div>
                                     </div>
                                 </div>
@@ -140,10 +144,10 @@
                                 <div class="setting-group mb-3" id="resetTimerGroup" style="display: none;">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div class="setting-info">
-                                            <h6 class="mb-1">
+                                            <h3 class="mb-1 fs-6">
                                                 <i class="fas fa-redo me-1 text-success"></i>
                                                 Reset Timer on Score
-                                            </h6>
+                                            </h3>
                                             <small class="text-muted">Reset timer when player scores points</small>
                                         </div>
                                         <div class="form-check form-switch">
@@ -174,15 +178,16 @@
                         <!-- Game Controls -->
                         <div class="info-card game-controls-card mt-4">
                             <div class="card-header">
-                                <h4 class="card-title mb-0">
+                                <h2 class="card-title mb-0 fs-4">
                                     <i class="fas fa-play-circle me-2 text-success"></i>
                                     Game Controls
-                                </h4>
+                                </h2>
                             </div>
                             <div class="card-body">
                                 {% if is_host %}
-                                <form action="{{ url_for('rooms.start_room', room_id=room_id) }}" method="post"
+                                <form action="{{ url_for('rooms.start_room') }}" method="post"
                                     id="startGameForm" class="mb-3">
+                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                                     <input type="hidden" name="players" id="input-players">
                                     <input type="hidden" name="timer_enabled" id="input-timer-enabled">
                                     <input type="hidden" name="timer_duration" id="input-timer-duration">
@@ -222,10 +227,10 @@
                     <div class="col-12">
                         <div class="info-card host-controls-card">
                             <div class="card-header">
-                                <h4 class="card-title mb-0">
+                                <h2 class="card-title mb-0 fs-4">
                                     <i class="fas fa-crown me-2 text-warning"></i>
                                     Host Controls
-                                </h4>
+                                </h2>
                             </div>
                             <div class="card-body">
                                 <div class="row g-3">
@@ -260,8 +265,8 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
     integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
     crossorigin="anonymous"></script>
-<script src="{{ url_for('static', filename='js/room.js') }}" type="module"></script>
+<script defer src="{{ url_for('static', filename='js/room.js') }}" type="module"></script>
 {% endblock %}

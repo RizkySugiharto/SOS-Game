@@ -1,6 +1,6 @@
 // Join Room JavaScript
 document.addEventListener("DOMContentLoaded", () => {
-    const joinForm = document.getElementById("joinForm")
+    const joinForm = document.getElementById("join-form")
     const btnJoin = document.getElementById("btn-join")
     const codeInput = document.getElementById("code")
 
@@ -18,19 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Handle form submission
     joinForm.addEventListener("submit", (e) => {
-        e.preventDefault()
-        const code = codeInput.value
-
-        if (code && code.length > 0) {
-            // Add loading state
-            btnJoin.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Joining...'
-            btnJoin.disabled = true
-
-            // Simulate loading delay for better UX
-            setTimeout(() => {
-                window.location.href = `/rooms/${code}`
-            }, 500)
-        }
+        btnJoin.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Joining...'
+        btnJoin.disabled = true
     })
 
     // Auto-focus on code input

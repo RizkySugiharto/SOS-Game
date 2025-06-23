@@ -2,7 +2,8 @@ from flask import session, current_app
 from flask_socketio import emit, join_room, leave_room
 from src.extensions import socketio, mysql
 import src.utils as utils
-from src.typings import SOSFlask
+from src.typings import SOSFlask, RoomID
+from src.classes.game import Game
 from pymysql.cursors import Cursor
 from typing import Optional
 import gevent
@@ -38,6 +39,28 @@ LIST_INDICES_MAX_HORIZOTAL_SPACE = (
     2,
     -2,
 )
+
+
+def end_game(game: Game, room_id: RoomID):
+    game.turn_on_ending()
+
+    winner = game.get_player_with_max_score()
+    conn = mysql.get_db()
+    cursor: Cursor = conn.cursor()
+
+    cursor.execute("UPDATE rooms SET winner = %s WHERE id = %s", [winner, room_id])
+    cursor.execute("DELETE FROM scores WHERE room_id = %s", [room_id])
+
+    conn.commit()
+    cursor.close()
+
+    game.end_game(winner=winner)
+
+    room = current_app.rooms.get(room_id)
+    if room is not None:
+        room.end_room(winner=winner)
+
+    emit("game_end", {"winner": winner}, to=room_id)
 
 
 @socketio.on("connect", namespace="/game")
@@ -168,23 +191,7 @@ def game_disconnect():
     ):
         return
 
-    game.turn_on_ending()
-
-    winner = game.get_player_with_max_score()
-    conn = mysql.get_db()
-    cursor: Cursor = conn.cursor()
-    
-    cursor.execute('UPDATE rooms SET winner = %s WHERE id = %s', [winner, room_id])
-    conn.commit()
-    cursor.close()
-    
-    game.end_game(winner=winner)
-
-    room = current_app.rooms.get(room_id)
-    if room is not None:
-        room.end_room(winner=winner)
-
-    emit("game_end", {"winner": winner}, to=room_id)
+    end_game(game=game, room_id=room_id)
 
 
 @socketio.on("play", namespace="/game")
@@ -206,7 +213,6 @@ def game_play(json: dict[str, object]):
         or game.is_playing()
         or game.is_ending()
     ):
-        emit("self_init_timer", game.get_timer().get_target_timestamp())
         return
 
     if game.get_number_of_active_players() < 2:
@@ -296,23 +302,7 @@ def game_play(json: dict[str, object]):
 
     # End Game Logic
     if game.is_all_filled():
-        game.turn_on_ending()
-
-        winner = game.get_player_with_max_score()
-        conn = mysql.get_db()
-        cursor: Cursor = conn.cursor()
-        
-        cursor.execute('UPDATE rooms SET winner = %s WHERE id = %s', [winner, room_id])
-        conn.commit()
-        cursor.close()
-        
-        game.end_game(winner=winner)
-
-        room = current_app.rooms.get(room_id)
-        if room is not None:
-            room.end_room(winner=winner)
-
-        emit("game_end", {"winner": winner}, to=room_id)
+        end_game(game=game, room_id=room_id)
         return
 
     # Reset Timer's Logic
@@ -401,23 +391,7 @@ def game_surrend():
         return
 
     # End Game Logic
-    game.turn_on_ending()
-
-    winner = game.get_player_with_max_score()
-    conn = mysql.get_db()
-    cursor: Cursor = conn.cursor()
-    
-    cursor.execute('UPDATE rooms SET winner = %s WHERE id = %s', [winner, room_id])
-    conn.commit()
-    cursor.close()
-    
-    game.end_game(winner=winner)
-
-    room = current_app.rooms.get(room_id)
-    if room is not None:
-        room.end_room(winner=winner)
-
-    emit("game_end", {"winner": winner}, to=room_id)
+    end_game(game=game, room_id=room_id)
 
 
 @socketio.on("timeout", namespace="/game")

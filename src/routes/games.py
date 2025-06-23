@@ -18,11 +18,14 @@ current_app: SOSFlask
 bp = Blueprint("games", __name__)
 
 
-@bp.get("/games/<int:room_id>")
-def view_game(room_id):
-    session["room_id"] = room_id
+@bp.get("/game")
+def view_game():
     if not session.get("username", False):
         session["username"] = utils.generate_username()
+
+    room_id = session.get("room_id")
+    if room_id is None:
+        return redirect(url_for("rooms.join_room"))
 
     username = session["username"]
     conn = mysql.get_db()
@@ -37,9 +40,11 @@ def view_game(room_id):
         if cursor.rowcount < 1:
             cursor.close()
             flash(f"Error: Room with id {room_id} isn't exists :(", category="danger")
-            return redirect(url_for("join_room"))
+            return redirect(url_for("rooms.join_room"))
 
-        winner, host, started, cells, states, timer_interval, reset_timer_on_score = cursor.fetchone()
+        winner, host, started, cells, states, timer_interval, reset_timer_on_score = (
+            cursor.fetchone()
+        )
 
         if not started:
             cursor.close()
@@ -47,7 +52,7 @@ def view_game(room_id):
                 f"Error: Room with id {room_id} hasn't even started yet :/",
                 category="danger",
             )
-            return redirect(url_for("join_room"))
+            return redirect(url_for("rooms.join_room"))
 
         if winner:
             cursor.close()
@@ -72,7 +77,7 @@ def view_game(room_id):
             states=list(states),
             timer_enabled=(timer_interval is not None),
             timer_seconds=timer_interval,
-            reset_timer_on_score=reset_timer_on_score
+            reset_timer_on_score=reset_timer_on_score,
         )
         current_app.games[room_id] = game
 
@@ -88,10 +93,10 @@ def view_game(room_id):
     )
 
 
-@bp.get("/games/thank-you")
+@bp.get("/game/thank-you")
 def thank_you():
-    room_id = session.get("room_id", 0)
-    if not room_id:
+    room_id = session.get("room_id")
+    if room_id is None:
         return redirect(url_for("index"))
 
     game = current_app.games.get(room_id)
@@ -104,11 +109,11 @@ def thank_you():
         cursor.close()
 
         if not winner:
-            return redirect(url_for("games.view_game", room_id=room_id))
+            return redirect(url_for("games.view_game"))
 
-        return render_template("thank_you.html", winner=winner)
+        return render_template("thank-you.html", winner=winner)
 
     if not game.has_ended():
-        return redirect(url_for("games.view_game", room_id=room_id))
+        return redirect(url_for("games.view_game"))
 
-    return render_template("thank_you.html", winner=game.get_winner())
+    return render_template("thank-you.html", winner=game.get_winner())

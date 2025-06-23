@@ -19,14 +19,17 @@ current_app: SOSFlask
 bp = Blueprint("rooms", __name__)
 
 
-@bp.get("/rooms/<int:room_id>")
-def view_room(room_id):
-    session["room_id"] = room_id
+@bp.get("/room")
+def view_room():
     if not session.get("username", False):
         session["username"] = utils.generate_username()
 
-    cursor: Cursor = mysql.get_db().cursor()
+    room_id = session.get("room_id")
+    if room_id is None:
+        return redirect(url_for("rooms.join_room"))
+
     room = current_app.rooms.get(room_id)
+    cursor: Cursor = mysql.get_db().cursor()
 
     if room is None:
         cursor.execute(
@@ -48,7 +51,7 @@ def view_room(room_id):
         return redirect(url_for("games.thank_you"))
 
     if room.has_started():
-        return redirect(url_for("games.view_game", room_id=room_id))
+        return redirect(url_for("games.view_game"))
 
     return render_template(
         "room.html",
@@ -56,7 +59,8 @@ def view_room(room_id):
         host=room.get_host(),
     )
 
-@bp.post("/rooms/create")
+
+@bp.post("/room/create")
 def create_room():
     if not session.get("username", False):
         session["username"] = utils.generate_username()
@@ -81,21 +85,38 @@ def create_room():
     session["room_id"] = room_id
     current_app.currently_players_creating_room.remove(username)
 
-    return redirect(url_for("rooms.view_room", room_id=room_id))
+    return redirect(url_for("rooms.view_room"))
 
 
-@bp.get("/rooms/join")
+@bp.get("/room/join")
 def join_room():
     return render_template("join.html")
 
 
-@bp.post("/rooms/<int:room_id>/start")
-def start_room(room_id):
-    emit("game_start", {"started": False}, namespace="/room", to=room_id)
+@bp.post("/room/join")
+def post_join_room():
+    room_id = request.form.get("room_id", "")
 
+    if not room_id.isnumeric():
+        flash("Room's code isn't valid", category="danger")
+        return redirect(url_for("rooms.join_room"))
+
+    room_id = int(room_id)
     session["room_id"] = room_id
+
+    return redirect(url_for("rooms.view_room"))
+
+
+@bp.post("/room/start")
+def start_room():
     if not session.get("username", False):
         session["username"] = utils.generate_username()
+
+    room_id = session.get("room_id")
+    if room_id is None:
+        return redirect(url_for("rooms.join_room"))
+
+    emit("game_start", {"started": False}, namespace="/room", to=room_id)
 
     username = session["username"]
     room = current_app.rooms.get(room_id)
@@ -115,15 +136,15 @@ def start_room(room_id):
         return redirect(url_for("games.thank_you"))
 
     if room.has_started():
-        return redirect(url_for("games.view_game", room_id=room_id))
+        return redirect(url_for("games.view_game"))
 
     if username != room.get_host():
         flash("You aren't the host", category="danger")
-        return redirect(url_for("rooms.view_room", room_id=room_id))
+        return redirect(url_for("rooms.view_room"))
 
     if len(room.get_players()) < 2:
         flash("There must be at least 2 players in the room", category="danger")
-        return redirect(url_for("rooms.view_room", room_id=room_id))
+        return redirect(url_for("rooms.view_room"))
 
     timer_enabled = request.form.get("timer_enabled") == "true"
     timer_duration = request.form.get("timer_duration")
@@ -148,7 +169,7 @@ def start_room(room_id):
 
     if game is None:
         flash("Failed to start the game", category="danger")
-        return redirect(url_for("rooms.view_room", room_id=room_id))
+        return redirect(url_for("rooms.view_room"))
 
     conn = mysql.get_db()
     cursor: Cursor = conn.cursor()
@@ -173,4 +194,4 @@ def start_room(room_id):
 
     emit("game_start", {"started": True}, namespace="/room", to=room_id)
 
-    return redirect(url_for("games.view_game", room_id=room_id))
+    return redirect(url_for("games.view_game"))

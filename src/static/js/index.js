@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     formCreateRoom.addEventListener('submit', () => {
         for (const btnAction of actionButtons) {
-            console.log(btnAction)
             btnAction.disabled = true
         }
     })

@@ -37,13 +37,3 @@ function animateTrophy() {
         trophy.style.animation = "bounce 2s infinite, glow 2s ease-in-out infinite alternate"
     }
 }
-
-// Add glow animation
-const style = document.createElement("style")
-style.textContent = `
-      @keyframes glow {
-          from { text-shadow: 0 0 10px #ffc107, 0 0 20px #ffc107, 0 0 30px #ffc107; }
-          to { text-shadow: 0 0 20px #ffc107, 0 0 30px #ffc107, 0 0 40px #ffc107; }
-      }
-  `
-document.head.appendChild(style)
