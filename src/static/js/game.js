@@ -479,7 +479,6 @@ document.addEventListener("DOMContentLoaded", () => {
         startY = touch.pageY - boardViewport.offsetTop
         scrollLeft = boardViewport.scrollLeft
         scrollTop = boardViewport.scrollTop
-        e.preventDefault()
     }
 
     function doPan(e) {
