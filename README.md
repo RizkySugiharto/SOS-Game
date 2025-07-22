@@ -1,7 +1,7 @@
 
 # SOS Game
 
-![License: All Rights Reserved](https://img.shields.io/badge/license-All%20Rights%20Reserved-red)
+[![License: CC BY‑NC‑ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 
 SOS Game is an interactive game built using Python. The game is designed with a simple interface and can be run as a web application. It features dynamic gameplay, and it utilizes the `Flask` framework for the backend.
 
@@ -107,14 +107,14 @@ SOS-Game/
 
 2. Open your browser and navigate to `http://127.0.0.1:5000` to start playing.
 
-## License
-
-This project is not open-source and is protected by copyright.
-
-You are **not allowed** to use, copy, modify, distribute, or sell any part of this project without **explicit written permission** from the author.
-
-© 2025 RizkySugiharto — All Rights Reserved.
-
 ## Acknowledgements
 
 - Thanks to [Flask](https://flask.palletsprojects.com/) for the web framework.
+
+## License
+
+© 2025 RizkySugiharto
+
+This work is licensed under a [Creative Commons Attribution‑NonCommercial‑NoDerivatives 4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+
+🔒 You’re free to share this code (non-commercially), but you **cannot modify**, **distribute**, or **use it for business** without permission.
